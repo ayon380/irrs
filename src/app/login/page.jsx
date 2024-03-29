@@ -8,6 +8,7 @@ import {
   setPersistence,
   browserLocalPersistence,
 } from "firebase/auth";
+import { motion } from "framer-motion";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { Toaster } from "react-hot-toast";
 import { toast } from "react-hot-toast";
@@ -75,10 +76,24 @@ const Page = () => {
     }
   };
   return (
-    <div>
+    <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
       <Toaster />
-      <div className="ok mt-20">
-        <button onClick={handlelogin}>Sign in With Google</button>
+      <div className="ok mt-20 bg-white p-8 rounded-lg shadow-lg">
+        <motion.button
+          onClick={handlelogin}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          className="relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-mono font-bold tracking-tighter text-white bg-gray-800 rounded-full group"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            className="absolute w-64 h-64 -rotate-45 -translate-x-20 translate-y-8 bg-white/30 rounded-full blur-3xl"
+          />
+          <span className="relative">Sign in With Google</span>
+        </motion.button>
       </div>
     </div>
   );

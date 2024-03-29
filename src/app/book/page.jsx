@@ -1,5 +1,11 @@
+"use client";
 import React from "react";
-
+import toast from "react-hot-toast";
+import { ToastBar } from "react-hot-toast";
+import dynamic from "next/dynamic";
+const Summary = dynamic(() => import("../../components/Summary"), {
+  ssr: false,
+});
 const Page = () => {
   const tdata = {
     status: true,
@@ -369,113 +375,238 @@ const Page = () => {
       },
     ],
   };
-  const trainData = { data: tdata.data };
+  const [fromst, setfromst] = React.useState("NZM");
+  const [tost, settost] = React.useState("CSMT");
+  const [doj, setdoj] = React.useState("2024-04-20");
+  const [trainData, settraindata] = React.useState(tdata);
+  const [train, settrain] = React.useState({});
+  const [classtype, setclasstype] = React.useState("");
+  const [opensummary, setopensummary] = React.useState(false);
+  const apikey = process.env.NEXT_PUBLIC_API;
+  const handleSearch = async () => {
+    try {
+      console.log("searchingg");
+      if (fromst == "" || tost == "" || doj == "") {
+        alert("Fill all the fields");
+        return;
+      }
+      console.log(doj);
+      const response = await fetch(
+        `https://irctc1.p.rapidapi.com/api/v3/trainBetweenStations?fromStationCode=${fromst}&toStationCode=${tost}&dateOfJourney=${doj}`,
+        {
+          method: "GET",
+          headers: {
+            "X-RapidAPI-Key": apikey,
+            "X-RapidAPI-Host": "irctc1.p.rapidapi.com",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      console.log(data);
+      toast(data.message);
+      settraindata(data);
+      if (data.data.length == 0) {
+        toast.error("No Trains Found");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+  const checkavailability = async (trainno, classtype) => {
+    try {
+      console.log(trainno + classtype);
+      // const response = await fetch(
+      //   `https://irctc1.p.rapidapi.com/api/v1/checkSeatAvailability?classType=${classtype}&fromStationCode=${fromst}&quota=GN&toStationCode=${tost}&trainNo=${trainno}&date=${doj}`,
+      //   {
+      //     method: "GET",
+      //     headers: {
+      //       "X-RapidAPI-Key": apikey,
+      //       "X-RapidAPI-Host": "irctc1.p.rapidapi.com",
+      //     },
+      //   }
+      // );
+
+      // if (!response.ok) {
+      //   throw new Error("Network response was not ok");
+      // }
+      // const data = await response.json();
+      // console.log(data);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+  const handleBooking = (train) => {
+    settrain(train);
+    setopensummary(true);
+  };
   return (
-    <div className="bg-gradient-to-r from-indigo-500 to-purple-500 min-h-screen py-16">
-    <div className="flex justify-center mb-8">
-      <div className="bg-white rounded-lg shadow-md p-8 max-w-3xl w-full">
-        <h1 className="text-3xl font-bold text-indigo-700 mb-4">Search Trains</h1>
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="from-station" className="block font-semibold text-gray-700 mb-2">
-              From Station
-            </label>
-            <input
-              type="text"
-              id="from-station"
-              className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label htmlFor="to-station" className="block font-semibold text-gray-700 mb-2">
-              To Station
-            </label>
-            <input
-              type="text"
-              id="to-station"
-              className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label htmlFor="doj" className="block font-semibold text-gray-700 mb-2">
-              Date of Journey
-            </label>
-            <input
-              type="date"
-              id="doj"
-              className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+    <div className="lp">
+      {/* <ToastBar/> */}
+      {opensummary && (
+        <Summary
+          fromst={fromst}
+          tost={tost}
+          doj={doj}
+          train={train}
+          classtype={classtype}
+        />
+      )}
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-500 min-h-screen py-16">
+        {/* <ToastBar /> */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white rounded-lg shadow-md p-8 max-w-3xl w-full">
+            <h1 className="text-3xl font-bold text-indigo-700 mb-4">
+              Search Trains
+            </h1>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label
+                  htmlFor="from-station"
+                  className="block font-semibold text-gray-700 mb-2"
+                >
+                  From Station
+                </label>
+                <input
+                  type="text"
+                  id="from-station"
+                  value={fromst}
+                  onChange={(e) => setfromst(e.target.value.toUpperCase())}
+                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="to-station"
+                  className="block font-semibold text-gray-700 mb-2"
+                >
+                  To Station
+                </label>
+                <input
+                  type="text"
+                  id="to-station"
+                  value={tost}
+                  onChange={(e) => settost(e.target.value.toUpperCase())}
+                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="doj"
+                  className="block font-semibold text-gray-700 mb-2"
+                >
+                  Date of Journey
+                </label>
+                <input
+                  type="date"
+                  id="doj"
+                  value={doj}
+                  onChange={(e) => setdoj(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+            <button
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md mt-4 hover:bg-indigo-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              onClick={handleSearch}
+            >
+              Search Trains
+            </button>
           </div>
         </div>
-        <button className="bg-indigo-600 text-white px-4 py-2 rounded-md mt-4 hover:bg-indigo-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          Search Trains
-        </button>
+
+        {trainData && (
+          <div className="max-w-4xl mx-auto ">
+            <h2 className="text-2xl font-bold text-white mb-4">Train Data</h2>
+            <ul className="space-y-4">
+              {trainData.data.map((train) => (
+                <li
+                  key={train.train_number}
+                  className="backdrop-filter backdrop-blur-3xl bg-white bg-opacity-75 rounded-lg p-4 shadow-md"
+                >
+                  <h3 className="text-xl font-semibold text-indigo-700 mb-2">
+                    {train.train_name}
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-700 mr-2">
+                        Train Number:
+                      </span>
+                      {train.train_number}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-700 mr-2">
+                        Run Days:
+                      </span>
+                      {train.run_days.join(", ")}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-700 mr-2">
+                        Source:
+                      </span>
+                      {train.from_station_name}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-700 mr-2">
+                        Destination:
+                      </span>
+                      {train.to_station_name}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-700 mr-2">
+                        Departure:
+                      </span>
+                      {train.from_std}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-700 mr-2">
+                        Arrival:
+                      </span>
+                      {train.to_std}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-700 mr-2">
+                        Duration:
+                      </span>
+                      {train.duration}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-bold text-gray-700 mr-2">
+                        Classes:
+                      </span>
+                      {train.class_type.join(", ")}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {train.class_type.map((classType) => (
+                        <button
+                          key={classType}
+                          className="bg-green-500 text-white px-2 py-1 rounded-md hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+                          onClick={() => {
+                            checkavailability(train.train_number, classType);
+                            setclasstype(classType);
+                          }}
+                        >
+                          Check {classType} Availability
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      onClick={()=>handleBooking(train)}
+                    >
+                      Book {classtype}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
-  
-    {trainData && (
-      <div className="max-w-4xl mx-auto ">
-        <h2 className="text-2xl font-bold text-white mb-4">Train Data</h2>
-        <ul className="space-y-4">
-          {trainData.data.map((train) => (
-            <li
-              key={train.train_number}
-              className="backdrop-filter backdrop-blur-3xl bg-white bg-opacity-75 rounded-lg p-4 shadow-md"
-            >
-              <h3 className="text-xl font-semibold text-indigo-700 mb-2">{train.train_name}</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="flex items-center">
-                  <span className="font-bold text-gray-700 mr-2">Train Number:</span>
-                  {train.train_number}
-                </div>
-                <div className="flex items-center">
-                  <span className="font-bold text-gray-700 mr-2">Run Days:</span>
-                  {train.run_days.join(", ")}
-                </div>
-                <div className="flex items-center">
-                  <span className="font-bold text-gray-700 mr-2">Source:</span>
-                  {train.from_station_name}
-                </div>
-                <div className="flex items-center">
-                  <span className="font-bold text-gray-700 mr-2">Destination:</span>
-                  {train.to_station_name}
-                </div>
-                <div className="flex items-center">
-                  <span className="font-bold text-gray-700 mr-2">Departure:</span>
-                  {train.from_std}
-                </div>
-                <div className="flex items-center">
-                  <span className="font-bold text-gray-700 mr-2">Arrival:</span>
-                  {train.to_std}
-                </div>
-                <div className="flex items-center">
-                  <span className="font-bold text-gray-700 mr-2">Duration:</span>
-                  {train.duration}
-                </div>
-                <div className="flex items-center">
-                  <span className="font-bold text-gray-700 mr-2">Classes:</span>
-                  {train.class_type.join(", ")}
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {train.class_type.map((classType) => (
-                    <button
-                      key={classType}
-                      className="bg-green-500 text-white px-2 py-1 rounded-md hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      Check {classType} Availability
-                    </button>
-                  ))}
-                </div>
-                <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  Book
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    )}
-  </div>
   );
 };
 
