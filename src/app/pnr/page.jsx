@@ -1,129 +1,147 @@
 "use client";
 import React, { useEffect } from "react";
 import { useState } from "react";
-
+import { Firestore, getFirestore, getDoc, doc } from "firebase/firestore";
+import app from "../../../lib/firebaseconfig";
+import { getAuth } from "firebase/auth";
+import { get } from "http";
 const Page = () => {
-  const d={
-    "status": true,
-    "message": "Success",
-    "timestamp": 1711690057934,
-    "data": {
-        "Pnr": "6733666271",
-        "TrainNo": "20889",
-        "TrainName": "TPTY HUMSAFR EX",
-        "Doj": "30-03-2024",
-        "BookingDate": "25-03-2024",
-        "Quota": "GN",
-        "DestinationDoj": "31-03-2024",
-        "SourceDoj": "30-03-2024",
-        "From": "HWH",
-        "To": "BZA",
-        "ReservationUpto": "BZA",
-        "BoardingPoint": "HWH",
-        "Class": "3A",
-        "ChartPrepared": false,
-        "BoardingStationName": "Kolkata Howrah Junction",
-        "TrainStatus": "",
-        "TrainCancelledFlag": false,
-        "ReservationUptoName": "Vijayawada Junction",
-        "PassengerCount": 1,
-        "PassengerStatus": [
-            {
-                "ReferenceId": null,
-                "Pnr": null,
-                "Number": 1,
-                "Prediction": null,
-                "PredictionPercentage": "100",
-                "ConfirmTktStatus": "Confirm",
-                "Coach": "B5",
-                "Berth": 53,
-                "BookingStatus": "CNF B5 53",
-                "CurrentStatus": "CNF",
-                "CoachPosition": null,
-                "BookingBerthNo": "53",
-                "BookingCoachId": "B5",
-                "BookingStatusNew": "CNF",
-                "BookingStatusIndex": "0",
-                "CurrentBerthNo": "",
-                "CurrentCoachId": "",
-                "BookingBerthCode": "MB",
-                "CurrentBerthCode": null,
-                "CurrentStatusNew": "CNF",
-                "CurrentStatusIndex": "0"
-            }
-        ],
-        "DepartureTime": "12:40",
-        "ArrivalTime": "07:30",
-        "ExpectedPlatformNo": "21",
-        "BookingFare": "1740",
-        "TicketFare": "1740",
-        "CoachPosition": "L SLR B1 B2 B3 B4 B5 B6 PC B7 B8 B9 B10 B11 B12 B13 B14 B15 B16 B17 B18 VSKP",
-        "Rating": 4.3,
-        "FoodRating": 4,
-        "PunctualityRating": 4.2,
-        "CleanlinessRating": 4.2,
-        "SourceName": "KOLKATA",
-        "DestinationName": "Vijayawada",
-        "Duration": "18:50",
-        "RatingCount": 258,
-        "HasPantry": true,
-        "GroupingId": null,
-        "OptVikalp": false,
-        "VikalpData": "",
-        "VikalpTransferred": false,
-        "VikalpTransferredMessage": "",
-        "FlightBannerUrl": "https://cdn.confirmtkt.com/img/banner/home_screen_flight_banner.png",
-        "FromDetails": {
-            "category": "A1",
-            "division": "HWH",
-            "latitude": "22.5834126",
-            "longitude": "88.3429024",
-            "state": "WEST BENGAL",
-            "stationCode": "HWH",
-            "stationName": "HOWRAH"
+  const d = {
+    status: true,
+    message: "Success",
+    timestamp: 1711690057934,
+    data: {
+      Pnr: "6733666271",
+      TrainNo: "20889",
+      TrainName: "TPTY HUMSAFR EX",
+      Doj: "30-03-2024",
+      BookingDate: "25-03-2024",
+      Quota: "GN",
+      DestinationDoj: "31-03-2024",
+      SourceDoj: "30-03-2024",
+      From: "HWH",
+      To: "BZA",
+      ReservationUpto: "BZA",
+      BoardingPoint: "HWH",
+      Class: "3A",
+      ChartPrepared: false,
+      BoardingStationName: "Kolkata Howrah Junction",
+      TrainStatus: "",
+      TrainCancelledFlag: false,
+      ReservationUptoName: "Vijayawada Junction",
+      PassengerCount: 1,
+      PassengerStatus: [
+        {
+          ReferenceId: null,
+          Pnr: null,
+          Number: 1,
+          Prediction: null,
+          PredictionPercentage: "100",
+          ConfirmTktStatus: "Confirm",
+          Coach: "B5",
+          Berth: 53,
+          BookingStatus: "CNF B5 53",
+          CurrentStatus: "CNF",
+          CoachPosition: null,
+          BookingBerthNo: "53",
+          BookingCoachId: "B5",
+          BookingStatusNew: "CNF",
+          BookingStatusIndex: "0",
+          CurrentBerthNo: "",
+          CurrentCoachId: "",
+          BookingBerthCode: "MB",
+          CurrentBerthCode: null,
+          CurrentStatusNew: "CNF",
+          CurrentStatusIndex: "0",
         },
-        "ToDetails": {
-            "category": "A1",
-            "division": "BZA",
-            "latitude": "16.5186249",
-            "longitude": "80.6198977",
-            "state": "ANDHRA PRADESH",
-            "stationCode": "BZA",
-            "stationName": "VIJAYAWADA"
-        },
-        "BoardingPointDetails": {
-            "category": "A1",
-            "division": "HWH",
-            "latitude": "22.5834126",
-            "longitude": "88.3429024",
-            "state": "WEST BENGAL",
-            "stationCode": "HWH",
-            "stationName": "HOWRAH"
-        },
-        "ReservationUptoDetails": {
-            "category": "A1",
-            "division": "BZA",
-            "latitude": "16.5186249",
-            "longitude": "80.6198977",
-            "state": "ANDHRA PRADESH",
-            "stationCode": "BZA",
-            "stationName": "VIJAYAWADA"
-        }
-    }
-}
+      ],
+      DepartureTime: "12:40",
+      ArrivalTime: "07:30",
+      ExpectedPlatformNo: "21",
+      BookingFare: "1740",
+      TicketFare: "1740",
+      CoachPosition:
+        "L SLR B1 B2 B3 B4 B5 B6 PC B7 B8 B9 B10 B11 B12 B13 B14 B15 B16 B17 B18 VSKP",
+      Rating: 4.3,
+      FoodRating: 4,
+      PunctualityRating: 4.2,
+      CleanlinessRating: 4.2,
+      SourceName: "KOLKATA",
+      DestinationName: "Vijayawada",
+      Duration: "18:50",
+      RatingCount: 258,
+      HasPantry: true,
+      GroupingId: null,
+      OptVikalp: false,
+      VikalpData: "",
+      VikalpTransferred: false,
+      VikalpTransferredMessage: "",
+      FlightBannerUrl:
+        "https://cdn.confirmtkt.com/img/banner/home_screen_flight_banner.png",
+      FromDetails: {
+        category: "A1",
+        division: "HWH",
+        latitude: "22.5834126",
+        longitude: "88.3429024",
+        state: "WEST BENGAL",
+        stationCode: "HWH",
+        stationName: "HOWRAH",
+      },
+      ToDetails: {
+        category: "A1",
+        division: "BZA",
+        latitude: "16.5186249",
+        longitude: "80.6198977",
+        state: "ANDHRA PRADESH",
+        stationCode: "BZA",
+        stationName: "VIJAYAWADA",
+      },
+      BoardingPointDetails: {
+        category: "A1",
+        division: "HWH",
+        latitude: "22.5834126",
+        longitude: "88.3429024",
+        state: "WEST BENGAL",
+        stationCode: "HWH",
+        stationName: "HOWRAH",
+      },
+      ReservationUptoDetails: {
+        category: "A1",
+        division: "BZA",
+        latitude: "16.5186249",
+        longitude: "80.6198977",
+        state: "ANDHRA PRADESH",
+        stationCode: "BZA",
+        stationName: "VIJAYAWADA",
+      },
+    },
+  };
   const [pnr, setPnr] = useState("");
   const [data, setData] = useState(d);
   const [checking, setChecking] = useState(false);
-  const apikey=process.env.NEXT_PUBLIC_API
+  const apikey = process.env.NEXT_PUBLIC_API;
+  const user = getAuth(app).currentUser;
+  const db = getFirestore(app);
   const handleCheck = async () => {
     try {
+      const ttdoc = await getDoc(doc(db, "tickets", pnr));
+      if (ttdoc.exists()) {
+        const tdata = {
+          status: true,
+          message: "Success",
+          timestamp: 1711690057934,
+          data: ttdoc.data(),
+        };
+        setData(tdata);
+        setChecking(false);
+        return;
+      }
       const response = await fetch(
         `https://irctc1.p.rapidapi.com/api/v3/getPNRStatus?pnrNumber=${pnr}`,
         {
           method: "GET",
           headers: {
-            "X-RapidAPI-Key":
-              apikey,
+            "X-RapidAPI-Key": apikey,
             "X-RapidAPI-Host": "irctc1.p.rapidapi.com",
           },
         }

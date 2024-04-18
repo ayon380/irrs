@@ -4,8 +4,16 @@ import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import app from "../../../lib/firebaseconfig";
 import { useSidebarStore } from "../store/zustand";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  updateDoc,
+  arrayRemove,
+} from "firebase/firestore";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
+import { update } from "firebase/database";
 
 const Page = () => {
   const router = useRouter();
@@ -15,7 +23,7 @@ const Page = () => {
   const setUserData = useSidebarStore((state) => state.setUserData);
   const userData = useSidebarStore((state) => state.userdata);
   const [tickets, setTickets] = useState([]);
-  const [expandedTicket, setExpandedTicket] = useState(null);
+  const [expandedTicket, setExpandedTicket] = useState(-1);
 
   onAuthStateChanged(auth, async () => {
     if (!user) {
@@ -28,18 +36,20 @@ const Page = () => {
     try {
       if (user) {
         const docRef = doc(db, "users", user.email);
+        let data = {};
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          const data = docSnap.data();
+          data = docSnap.data();
           setUserData(data);
         }
-        console.log(userData);
-        userData.tickets.map(async (ticket) => {
+        // console.log(userData);
+        const ticketPromises = data.tickets.map(async (ticket) => {
           const re = doc(db, "tickets", ticket.toString());
           const res = await getDoc(re);
-          console.log(res.data());
-          setTickets((prev) => [...prev, res.data()]);
+          return res.data();
         });
+        const ticketData = await Promise.all(ticketPromises);
+        setTickets(ticketData);
       }
     } catch (e) {
       console.log(e);
@@ -66,6 +76,24 @@ const Page = () => {
   useEffect(() => {
     console.log(tickets);
   }, [tickets]);
+  const handleCancel = async (pnr) => {
+    try {
+      
+        // const docRef = doc(db, "tickets", pnr);
+        // await docRef.delet
+        const userDocRef = doc(db, "users", userData.email);
+        await updateDoc(userDocRef, {
+          tickets: arrayRemove(pnr),
+        });
+        toast.success("Ticket Cancelled Successfully");
+        getTickets();
+      
+    } catch (e) {
+      toast.error("Error Cancelling Ticket");
+      console.log(e);
+    }
+  };
+
   return (
     <div
       className="min-h-screen py-20 px-4 bg-gradient-to-br from-indigo-500 to-purple-700 text-white"
@@ -86,12 +114,12 @@ const Page = () => {
           </button>
         </div>
         <div className="text-3xl font-bold mb-8">Tickets</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="">
           {tickets.map((ticket) => (
             <motion.div
               key={ticket.Pnr}
-              className="bg-white bg-opacity-10 rounded-lg shadow-lg p-6 cursor-pointer"
-              onClick={() => toggleTicketExpand(ticket.id)}
+              className="bg-white mb-5 bg-opacity-10 rounded-lg shadow-lg p-6 cursor-pointer"
+              onClick={() => toggleTicketExpand(ticket.Pnr)}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -100,12 +128,18 @@ const Page = () => {
                 <div>
                   <div className="font-bold text-lg">PNR: {ticket.Pnr}</div>
                   <div className="text-sm">Train: {ticket.TrainName}</div>
+                  <div className="booktime">
+                    Booking Time:{" "}
+                    {ticket.BookingDate
+                      ? new Date(ticket.BookingDate).toLocaleString()
+                      : ""}
+                  </div>
                 </div>
                 <div className="text-2xl">
-                  {expandedTicket === ticket.id ? "-" : "+"}
+                  {expandedTicket === ticket.Pnr ? "-" : "+"}
                 </div>
               </div>
-              {expandedTicket === ticket.id && (
+              {expandedTicket === ticket.Pnr && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
@@ -148,24 +182,30 @@ const Page = () => {
                       <div>
                         <span className="font-bold">Age:</span> {passenger.age}
                       </div>
-                      <div>
+                      {/* <div>
                         <span className="font-bold">Gender:</span>{" "}
                         {passenger.gender}
-                      </div>
+                      </div> */}
                       <div>
                         <span className="font-bold">Coach Number:</span>{" "}
-                        {passenger.coachNumber}
+                        {passenger.Coach}
                       </div>
                       <div>
                         <span className="font-bold">Seat Number:</span>{" "}
-                        {passenger.seatNumber}
+                        {passenger.Berth}
                       </div>
                       <div>
                         <span className="font-bold">Berth:</span>{" "}
-                        {passenger.berth}
+                        {passenger.BookingBerthCode}
                       </div>
                     </div>
                   ))}
+                  <button
+                    className="bg-purple-500 text-white py-2 px-4 rounded mt-4"
+                    onClick={() => handleCancel(ticket.Pnr)}
+                  >
+                    Cancel Ticket
+                  </button>
                 </motion.div>
               )}
             </motion.div>

@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 const Summary = dynamic(() => import("../../components/Summary"), {
   ssr: false,
 });
+
 const Page = () => {
   const tdata = {
     status: true,
@@ -453,6 +454,7 @@ const Page = () => {
           doj={doj}
           train={train}
           classtype={classtype}
+          setopensummary={setopensummary}
         />
       )}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-500 min-h-screen py-16">
@@ -595,7 +597,7 @@ const Page = () => {
                     </div>
                     <button
                       className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      onClick={()=>handleBooking(train)}
+                      onClick={() => handleBooking(train)}
                     >
                       Book {classtype}
                     </button>
