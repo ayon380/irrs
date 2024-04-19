@@ -107,7 +107,7 @@ function generateSeatInfo(coachType, passengerCount) {
     seatNumbers.push({
       Coach: `${coaches[Math.floor(i / totalBerths)]}`,
       Berth: seatNo,
-      BookingBerthCode : berth,
+      BookingBerthCode: berth,
     });
   }
 
@@ -194,6 +194,7 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
       BookingFare: amount,
       Duration: train.duration,
     };
+    sendmail(data);
     const qwrw = doc(db, "tickets", Pnr.toString());
     await setDoc(qwrw, data);
     const us = doc(db, "users", user.email);
@@ -202,6 +203,30 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
     });
     console.log(data);
   };
+  const sendmail = async (data) => {
+    const email = user.email;
+    const subject = "Ticket Booking Confirmation";
+    const ticket = data;
+    const ress = await fetch("/api/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        subject,
+        username: user.displayName,
+        ticket,
+      }),
+    });
+    const response = await ress.json();
+    if (response.status === "OK") {
+      console.log("Email sent successfully");
+    } else {
+      console.log("Email not sent");
+    }
+  };
+
   const handlepayment = async () => {
     try {
       const res = await loadScript(
@@ -235,11 +260,12 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
         image: "favicon.ico",
         order_id: response.order.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
         handler: async function (response) {
+          generateticket();
           console.log(response.razorpay_order_id);
           console.log(response.razorpay_payment_id);
           console.log(response.razorpay_signature);
           toast.success("Payment Successful");
-          generateticket();
+
           setTimeout(() => {
             router.push("/profile");
           }, 1000);
