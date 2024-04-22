@@ -1,12 +1,29 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useSidebarStore } from "@/app/store/zustand";
 import { motion } from "framer-motion";
-
+import app from "../../lib/firebaseconfig";
+import { getDoc, getFirestore, doc } from "firebase/firestore";
 const Navbar = () => {
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  useEffect(() => {
+    async function getUserData() {
+      if (auth.currentUser) {
+        const user = auth.currentUser;
+        const docRef = doc(db, "users", user.email);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          useSidebarStore.setState({ userdata: data });
+        }
+      }
+    }
+    getUserData();
+  }, [auth.currentUser, db]);
   const router = useRouter();
   const userdata = useSidebarStore((state) => state.userdata);
 
@@ -42,13 +59,13 @@ const Navbar = () => {
 
   return (
     <motion.div
-      className="fixed w-screen top-0 z-20"
+      className="fixed w-screen top-0  z-20"
       variants={navbarVariants}
       initial="initial"
       animate="animate"
     >
       <motion.div
-        className="flex lg:mx-96 justify-evenly shadow-2xl border-2 border-gray-400 backdrop-filter backdrop-blur-3xl bg-white bg-opacity-50 py-2 my-2 rounded-full px-5"
+        className="flex mx-5 lg:mx-96 justify-evenly shadow-2xl border-2 border-gray-400 backdrop-filter backdrop-blur-3xl bg-white bg-opacity-50 py-2 my-2 rounded-full px-5"
         variants={navbarVariants}
         initial="initial"
         animate="animate"
@@ -77,7 +94,7 @@ const Navbar = () => {
         >
           PNR Status
         </motion.button>
-        {userdata ? (
+        {userdata && userdata.pfp ? (
           <>
             <motion.button
               className="profile"

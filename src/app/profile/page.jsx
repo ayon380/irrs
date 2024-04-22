@@ -13,8 +13,7 @@ import {
 } from "firebase/firestore";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { update } from "firebase/database";
-
+import { set } from "firebase/database";
 const Page = () => {
   const router = useRouter();
   const auth = getAuth(app);
@@ -23,18 +22,22 @@ const Page = () => {
   const setUserData = useSidebarStore((state) => state.setUserData);
   const userData = useSidebarStore((state) => state.userdata);
   const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [expandedTicket, setExpandedTicket] = useState(-1);
-
-  onAuthStateChanged(auth, async () => {
-    if (!user) {
-      console.log("user not logged in");
-      router.push("/login");
-    }
-  });
+  useEffect(() => {
+    const unSubscribe = onAuthStateChanged(auth, async () => {
+      if (!user) {
+        console.log("user not logged in");
+        router.push("/login");
+      }
+    });
+    return unSubscribe;
+  }, [auth, router, user]);
 
   const getTickets = async () => {
     try {
       if (user) {
+        setLoading(true);
         const docRef = doc(db, "users", user.email);
         let data = {};
         const docSnap = await getDoc(docRef);
@@ -49,7 +52,9 @@ const Page = () => {
           return res.data();
         });
         const ticketData = await Promise.all(ticketPromises);
+        ticketData.reverse();
         setTickets(ticketData);
+        setLoading(false);
       }
     } catch (e) {
       console.log(e);
@@ -78,16 +83,14 @@ const Page = () => {
   }, [tickets]);
   const handleCancel = async (pnr) => {
     try {
-      
-        // const docRef = doc(db, "tickets", pnr);
-        // await docRef.delet
-        const userDocRef = doc(db, "users", userData.email);
-        await updateDoc(userDocRef, {
-          tickets: arrayRemove(pnr),
-        });
-        toast.success("Ticket Cancelled Successfully");
-        getTickets();
-      
+      // const docRef = doc(db, "tickets", pnr);
+      // await docRef.delet
+      const userDocRef = doc(db, "users", userData.email);
+      await updateDoc(userDocRef, {
+        tickets: arrayRemove(pnr),
+      });
+      toast.success("Ticket Cancelled Successfully");
+      getTickets();
     } catch (e) {
       toast.error("Error Cancelling Ticket");
       console.log(e);
@@ -96,7 +99,7 @@ const Page = () => {
 
   return (
     <div
-      className="min-h-screen py-20 px-4 bg-gradient-to-br from-indigo-500 to-purple-700 text-white"
+      className="min-h-screen py-20 px-4 text-white"
       style={{
         backgroundAttachment: "fixed",
       }}
@@ -104,16 +107,23 @@ const Page = () => {
       <div className="container mx-auto">
         <div className="flex justify-between items-center mb-8">
           {userData && (
-            <div className="text-2xl font-bold">{userData.name}</div>
+            <>
+              <div className="text-2xl font-bold">{userData.name}</div>
+
+              <button
+                onClick={handlelogout}
+                className="bg-white text-purple-700 hover:text-white hover:bg-purple-500 font-bold py-2 px-4 rounded transition duration-300"
+              >
+                Logout
+              </button>
+            </>
           )}
-          <button
-            onClick={handlelogout}
-            className="bg-white text-purple-700 hover:text-white hover:bg-purple-500 font-bold py-2 px-4 rounded transition duration-300"
-          >
-            Logout
-          </button>
         </div>
         <div className="text-3xl font-bold mb-8">Tickets</div>
+        {loading && <div>Loading Tickets...</div>}
+        {tickets.length === 0 && !loading && (
+          <div>No Tickets Found. Book Tickets to see them here.</div>
+        )}
         <div className="">
           {tickets.map((ticket) => (
             <motion.div

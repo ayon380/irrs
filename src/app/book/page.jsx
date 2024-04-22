@@ -3,10 +3,12 @@ import React from "react";
 import toast from "react-hot-toast";
 import { ToastBar } from "react-hot-toast";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import app from "../../../lib/firebaseconfig";
 const Summary = dynamic(() => import("../../components/Summary"), {
   ssr: false,
 });
-
 const Page = () => {
   const tdata = {
     status: true,
@@ -376,6 +378,9 @@ const Page = () => {
       },
     ],
   };
+  const auth = getAuth(app);
+  const user = auth.currentUser;
+  const router = useRouter();
   const [fromst, setfromst] = React.useState("NZM");
   const [tost, settost] = React.useState("CSMT");
   const [doj, setdoj] = React.useState("2024-04-20");
@@ -384,6 +389,18 @@ const Page = () => {
   const [classtype, setclasstype] = React.useState("");
   const [opensummary, setopensummary] = React.useState(false);
   const apikey = process.env.NEXT_PUBLIC_API;
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User is signed in");
+      } else {
+        router.push("/login");
+      }
+    });
+
+    return unsubscribe; // Clean up subscription on unmount
+  }, [auth, router]);
+
   const handleSearch = async () => {
     try {
       console.log("searchingg");
@@ -445,7 +462,7 @@ const Page = () => {
     setopensummary(true);
   };
   return (
-    <div className="lp">
+    <div className=" mt-10 mx-1">
       {/* <ToastBar/> */}
       {opensummary && (
         <Summary
@@ -457,7 +474,7 @@ const Page = () => {
           setopensummary={setopensummary}
         />
       )}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-500 min-h-screen py-16">
+      <div className=" min-h-screen py-16">
         {/* <ToastBar /> */}
         <div className="flex justify-center mb-8">
           <div className="bg-white rounded-lg shadow-md p-8 max-w-3xl w-full">

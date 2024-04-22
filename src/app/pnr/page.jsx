@@ -194,7 +194,7 @@ const Page = () => {
       </div>
       {checking && <p className="text-white">Checking...</p>}
       {data.data && (
-        <div className="bg-white p-8 rounded-lg bg-opacity-65 backdrop-filter backdrop-blur-3xl shadow-md max-w-3xl">
+        <div className="bg-white m-1 p-8 rounded-lg bg-opacity-65 backdrop-filter backdrop-blur-3xl shadow-md max-w-3xl">
           <h2 className="text-3xl font-bold mb-6 text-gray-800">PNR Status</h2>
           <div className="grid grid-cols-2 gap-6">
             <div>

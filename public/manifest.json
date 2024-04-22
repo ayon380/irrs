@@ -1,0 +1,25 @@
+{
+    "name": "IRRS",
+    "short_name": "IRRS",
+    "icons": [
+      {
+        "src": "/192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+  
+      {
+        "src": "/mus512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose":"any maskable"
+      }
+    ],
+    "theme_color": "white",
+    "background_color": "white",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "portrait"
+  }
+  

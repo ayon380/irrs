@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   getAuth,
   signInWithPopup,
@@ -15,29 +15,15 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useSidebarStore } from "../store/zustand";
 import app from "../../../lib/firebaseconfig";
+
 const Page = () => {
   const auth = getAuth(app);
   const db = getFirestore(app);
-  const user = auth.currentUser;
   const setUserData = useSidebarStore((state) => state.setUserData);
   const userData = useSidebarStore((state) => state.userdata);
   const provider = new GoogleAuthProvider();
   const router = useRouter();
-  onAuthStateChanged(auth, async () => {
-    if (user) {
-      const q = await checkIfUserExists(user.email);
-      console.log(q);
-      if (user && q) {
-        if (!userData) {
-          const userdata = doc(db, "users", user.email);
-          const q1 = await getDoc(userdata);
-          setUserData(q1.data());
-          // setUserData();
-        }
-        router.push("/profile");
-      }
-    }
-  });
+  const [authStateChecked, setAuthStateChecked] = useState(false);
   const checkIfUserExists = async (email) => {
     try {
       const d = doc(db, "users", email);
@@ -47,15 +33,17 @@ const Page = () => {
       console.log(e);
     }
   };
+  useEffect(() => {
+    if (auth.currentUser) {
+      router.push("/profile");
+    }
+  }, [auth.currentUser, router]);
   const handlelogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
-      // User is already registered, proceed with login
       const email = result.user.email;
       const q = await checkIfUserExists(email);
-      console.log(result.user);
       if (!q) {
-        // Redirect to the signup screen
         router.push("/signup");
         return;
       }
@@ -64,18 +52,17 @@ const Page = () => {
       const userdata = doc(db, "users", email);
       const q1 = await getDoc(userdata);
       setUserData(q1.data());
-      // Redirect to the feed screen after a delay
       setTimeout(() => {
         router.push("/profile");
       }, 1000);
     } catch (error) {
-      // Handle login errors
       const errorCode = error.code;
       const errorMessage = error.message;
       toast.error(`Error Logging In ${errorCode} : ${errorMessage}`);
     }
   };
-  return (
+
+  return !auth.currentUser ? (
     <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
       <Toaster />
       <div className="ok mt-20 bg-white p-8 rounded-lg shadow-lg">
@@ -96,6 +83,8 @@ const Page = () => {
         </motion.button>
       </div>
     </div>
+  ) : (
+    <div>Redirecting...</div>
   );
 };
 
