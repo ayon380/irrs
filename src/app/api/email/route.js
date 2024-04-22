@@ -8,8 +8,8 @@ export async function POST(request) {
     port: 465,
     host: "smtp.gmail.com",
     auth: {
-      user: "connectirrs@gmail.com",
-      pass: process.env.EMAIL_PASSWORD,
+      user: "connectonmuse@gmail.com",
+      pass: "trov tcct pktt gjmq",
     },
     secure: true,
   });

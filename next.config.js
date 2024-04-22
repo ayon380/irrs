@@ -1,3 +1,4 @@
+const { hostname } = require("os");
 
 const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
@@ -12,9 +13,14 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 });
 
 module.exports = withPWA({
-//   reactStrictMode: true,
+  //   reactStrictMode: true,
   images: {
-    domains: ["firebasestorage.googleapis.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+      
+    ],
   },
- 
 });
