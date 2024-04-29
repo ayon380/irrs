@@ -148,6 +148,10 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
   };
 
   const handleNext = () => {
+    if (passengers.length === 0) {
+      toast.error("Please add at least one passenger");
+      return;
+    }
     for (let i = 0; i < passengers.length; i++) {
       if (passengers[i].name === "" || passengers[i].age === "") {
         toast.error("Please fill all the passenger details");
@@ -285,6 +289,11 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
       const paymentObject = new window.Razorpay(options);
       paymentObject.on("payment.failed", function (response) {
         // alert(response.error.code);
+        toast.error("Payment Failed, Try Again!! ");
+        setShowFinalSummary(false);
+        setTimeout(() => {
+          router.push("/book");
+        }, 1000);
         // alert(response.error.description);
         // alert(response.error.source);
         // alert(response.error.step);
@@ -363,17 +372,37 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm">
       <Toaster />
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
         {!showFinalSummary ? (
           <>
-            <button onClick={() => setopensummary(false)}>Close</button>
-            <h2 className="text-lg font-bold mb-4">Passenger Details</h2>
-            <div className="mb-4">
-              <p>From Station: {fromst}</p>
-              <p>To Station: {tost}</p>
-              <p>Date of Journey: {doj}</p>
-              <p>Train: {train.train_number}</p>
-              <p>Class Type: {classtype}</p>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Passenger Details</h2>
+              <button
+                onClick={() => setopensummary(false)}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="mb-6">
+              <p className="text-gray-600">From Station: {fromst}</p>
+              <p className="text-gray-600">To Station: {tost}</p>
+              <p className="text-gray-600">Date of Journey: {doj}</p>
+              <p className="text-gray-600">Train: {train.train_number}</p>
+              <p className="text-gray-600">Class Type: {classtype}</p>
             </div>
             {passengers.map((passenger, index) => (
               <div key={index} className="mb-4 flex items-center">
@@ -388,7 +417,7 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
                     onChange={(e) =>
                       handlePassengerChange(index, "name", e.target.value)
                     }
-                    className="border border-gray-300 rounded-md p-2"
+                    className="border border-gray-300 rounded-md p-2 w-full"
                   />
                   <input
                     type="number"
@@ -397,12 +426,12 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
                     onChange={(e) =>
                       handlePassengerChange(index, "age", e.target.value)
                     }
-                    className="border border-gray-300 rounded-md p-2"
+                    className="border border-gray-300 rounded-md p-2 w-24"
                   />
                 </div>
                 <button
                   onClick={() => handleRemovePassenger(index)}
-                  className="ml-2 bg-red-500 text-white rounded-md px-2 py-1"
+                  className="ml-2 bg-red-500 text-white rounded-md px-2 py-1 hover:bg-red-600 transition-colors"
                 >
                   Remove
                 </button>
@@ -412,14 +441,22 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
               <button
                 onClick={handleAddPassenger}
                 disabled={passengers.length === 6}
-                className="bg-blue-500 text-white rounded-md px-4 py-2 disabled:bg-gray-400"
+                className={`${
+                  passengers.length === 6
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-500 hover:bg-blue-600 transition-colors"
+                } text-white rounded-md px-4 py-2`}
               >
                 Add Passenger
               </button>
               <button
                 onClick={handleNext}
                 disabled={passengers[0]?.name === ""}
-                className="bg-green-500 text-white rounded-md px-4 py-2 disabled:bg-gray-400"
+                className={`${
+                  passengers[0]?.name === ""
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-500 hover:bg-green-600 transition-colors"
+                } text-white rounded-md px-4 py-2 ml-2`}
               >
                 Next
               </button>
@@ -427,31 +464,56 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
           </>
         ) : (
           <>
-            <h2 className="text-lg font-bold mb-4">Final Summary</h2>
-            <div className="mb-4">
-              <p>From Station: {fromst}</p>
-              <p>To Station: {tost}</p>
-              <p>Date of Journey: {doj}</p>
-              <p>Train: {train.train_number}</p>
-              <p>Class Type: {classtype}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold mb-2">Passengers:</h3>
-              {passengers.map((passenger, index) => (
-                <div key={index} className="mb-2">
-                  <p>
-                    Passenger {index + 1}: {passenger.name} ({passenger.age}{" "}
-                    years old)
-                  </p>
-                </div>
-              ))}
-            </div>
-            <button
-              className="bg-green-500 text-white rounded-md px-4 py-2 mt-4"
-              onClick={() => handlepayment()}
-            >
-              Pay Now ₹{amount}
-            </button>
+            <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+  <div className="flex justify-between items-center mb-8">
+    <h2 className="text-2xl font-bold text-gray-800">Final Summary</h2>
+    <button
+      onClick={() => setopensummary(false)}
+      className="text-gray-500 hover:text-gray-700 transition-colors focus:outline-none"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M6 18L18 6M6 6l12 12"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <div className="mb-8">
+    <p className="text-gray-600">From Station: {fromst}</p>
+    <p className="text-gray-600">To Station: {tost}</p>
+    <p className="text-gray-600">Date of Journey: {doj}</p>
+    <p className="text-gray-600">Train: {train.train_number}</p>
+    <p className="text-gray-600">Class Type: {classtype}</p>
+  </div>
+
+  <div className="mb-8">
+    <h3 className="text-lg font-semibold text-gray-800 mb-4">Passengers:</h3>
+    {passengers.map((passenger, index) => (
+      <div key={index} className="mb-2 bg-gray-100 p-4 rounded-md">
+        <p>
+          Passenger {index + 1}: {passenger.name} ({passenger.age} years old)
+        </p>
+      </div>
+    ))}
+  </div>
+
+  <button
+    className="bg-green-500 text-white rounded-md px-6 py-3 hover:bg-green-600 transition-colors focus:outline-none"
+    onClick={() => handlepayment()}
+  >
+    Pay Now ₹{amount}
+  </button>
+</div>
           </>
         )}
       </div>

@@ -383,7 +383,7 @@ const Page = () => {
   const router = useRouter();
   const [fromst, setfromst] = React.useState("NZM");
   const [tost, settost] = React.useState("CSMT");
-  const [doj, setdoj] = React.useState("2024-04-20");
+  const [doj, setdoj] = React.useState("");
   const [trainData, settraindata] = React.useState(tdata);
   const [train, settrain] = React.useState({});
   const [classtype, setclasstype] = React.useState("");
@@ -463,7 +463,6 @@ const Page = () => {
   };
   return (
     <div className=" mt-10 mx-1">
-      {/* <ToastBar/> */}
       {opensummary && (
         <Summary
           fromst={fromst}
@@ -524,6 +523,11 @@ const Page = () => {
                   id="doj"
                   value={doj}
                   onChange={(e) => setdoj(e.target.value)}
+                  min={
+                    new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
+                      .toISOString()
+                      .split("T")[0]
+                  }
                   className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
@@ -608,7 +612,7 @@ const Page = () => {
                             setclasstype(classType);
                           }}
                         >
-                          Check {classType} Availability
+                          Select {classType} Class
                         </button>
                       ))}
                     </div>

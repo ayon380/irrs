@@ -8,8 +8,6 @@ import { getAuth } from "firebase/auth";
 import { useSidebarStore } from "../store/zustand";
 import { useRouter } from "next/navigation";
 const Page = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const setUserData = useSidebarStore((state) => state.setUserData);
   const [dob, setDob] = useState("");
@@ -17,12 +15,9 @@ const Page = () => {
   const auth = getAuth(app);
   const router = useRouter();
   const user=auth.currentUser;
+  const [name, setName] = useState(user.displayName);
   const handleNameChange = (e) => {
     setName(e.target.value);
-  };
-
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
   };
 
   const handlePhoneChange = (e) => {
@@ -36,15 +31,15 @@ const Page = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (name === "" || email === "" || phone === "" || dob === "") {
+      if (name === "" || phone === "" || dob === "") {
         toast.error("Please fill all the fields");
         return;
       }
       console.log(user);
-      const docRef = doc(db, "users", email);
+      const docRef = doc(db, "users", user.email);
       const d = await setDoc(docRef, {
         name: name,
-        email: email,
+        // email: email,
         phone: phone,
         dob: dob,
         pfp: user.photoURL,
@@ -53,12 +48,12 @@ const Page = () => {
       // Here you can perform signup logic with the form data
       toast.success("Signup successful");
       console.log("Name:", name);
-      console.log("Email:", email);
+      // console.log("Email:", email);
       console.log("Phone:", phone);
       console.log("Date of Birth:", dob);
       setUserData({
         name: name,
-        email: email,
+        email: user.email,
         phone: phone,
         dob: dob,
         pfp: user.photoURL,
@@ -96,22 +91,7 @@ const Page = () => {
               onChange={handleNameChange}
             />
           </div>
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-gray-700 font-bold mb-2"
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              placeholder="Enter your email"
-              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              value={email}
-              onChange={handleEmailChange}
-            />
-          </div>
+         
           <div>
             <label
               htmlFor="phone"
