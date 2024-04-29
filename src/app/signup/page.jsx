@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
 import { addDoc, doc, getFirestore, setDoc } from "firebase/firestore";
@@ -14,8 +14,13 @@ const Page = () => {
   const db = getFirestore(app);
   const auth = getAuth(app);
   const router = useRouter();
-  const user=auth.currentUser;
-  const [name, setName] = useState(user.displayName);
+  const user = auth.currentUser;
+  const [name, setName] = useState();
+  useEffect(() => {
+    if (user) {
+      setName(user.displayName);
+    }
+  }, [user]);
   const handleNameChange = (e) => {
     setName(e.target.value);
   };
@@ -91,7 +96,7 @@ const Page = () => {
               onChange={handleNameChange}
             />
           </div>
-         
+
           <div>
             <label
               htmlFor="phone"
