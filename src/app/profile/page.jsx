@@ -210,12 +210,14 @@ const Page = () => {
                       </div>
                     </div>
                   ))}
-                  <button
-                    className="bg-purple-500 text-white py-2 px-4 rounded mt-4"
-                    onClick={() => handleCancel(ticket.Pnr)}
-                  >
-                    Cancel Ticket
-                  </button>
+                  {ticket.Doj > new Date().toISOString() && (
+                    <button
+                      className="bg-purple-500 text-white py-2 px-4 rounded mt-4"
+                      onClick={() => handleCancel(ticket.Pnr)}
+                    >
+                      Cancel Ticket
+                    </button>
+                  )}
                 </motion.div>
               )}
             </motion.div>
