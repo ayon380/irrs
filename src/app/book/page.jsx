@@ -383,9 +383,9 @@ const Page = () => {
   const router = useRouter();
   const [fromst, setfromst] = React.useState("NZM");
   const [tost, settost] = React.useState("CSMT");
-  const [doj, setdoj] = React.useState( new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-  .toISOString()
-  .split("T")[0]);
+  const [doj, setdoj] = React.useState(
+    new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  );
   const [trainData, settraindata] = React.useState(tdata);
   const [train, settrain] = React.useState({});
   const [classtype, setclasstype] = React.useState("");
@@ -460,6 +460,10 @@ const Page = () => {
     }
   };
   const handleBooking = (train) => {
+    if (classtype == "") {
+      alert("Select a class type");
+      return;
+    }
     settrain(train);
     setopensummary(true);
   };

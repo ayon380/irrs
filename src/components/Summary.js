@@ -1,5 +1,5 @@
 // import { set } from 'firebase/database';
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import app from "../../lib/firebaseconfig";
 import { getAuth } from "firebase/auth";
+import { set } from "firebase/database";
 // import Razorpay from 'razorpay';
 function loadScript(src) {
   return new Promise((resolve) => {
@@ -124,6 +125,7 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
   const [passengers, setPassengers] = useState([]);
   const [showFinalSummary, setShowFinalSummary] = useState(false);
   const [amount, setAmount] = useState(0);
+  const [paying, setpaying] = useState(false);
   const db = getFirestore(app);
   const auth = getAuth(app);
   const user = auth.currentUser;
@@ -233,6 +235,7 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
 
   const handlepayment = async () => {
     try {
+      setpaying(true);
       const res = await loadScript(
         "https://checkout.razorpay.com/v1/checkout.js"
       );
@@ -273,6 +276,7 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
           setTimeout(() => {
             router.push("/profile");
           }, 1000);
+          setpaying(false);
         },
         // prefill: {
         //   name: user.firstName + " " + user.lastName,
@@ -290,6 +294,7 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
       paymentObject.on("payment.failed", function (response) {
         // alert(response.error.code);
         toast.error("Payment Failed, Try Again!! ");
+        setpaying(false);
         setShowFinalSummary(false);
         setTimeout(() => {
           router.push("/book");
@@ -465,55 +470,61 @@ const Summary = ({ fromst, tost, doj, train, setopensummary, classtype }) => {
         ) : (
           <>
             <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-  <div className="flex justify-between items-center mb-8">
-    <h2 className="text-2xl font-bold text-gray-800">Final Summary</h2>
-    <button
-      onClick={() => setopensummary(false)}
-      className="text-gray-500 hover:text-gray-700 transition-colors focus:outline-none"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M6 18L18 6M6 6l12 12"
-        />
-      </svg>
-    </button>
-  </div>
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Final Summary
+                </h2>
+                <button
+                  onClick={() => setopensummary(false)}
+                  className="text-gray-500 hover:text-gray-700 transition-colors focus:outline-none"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
 
-  <div className="mb-8">
-    <p className="text-gray-600">From Station: {fromst}</p>
-    <p className="text-gray-600">To Station: {tost}</p>
-    <p className="text-gray-600">Date of Journey: {doj}</p>
-    <p className="text-gray-600">Train: {train.train_number}</p>
-    <p className="text-gray-600">Class Type: {classtype}</p>
-  </div>
+              <div className="mb-8">
+                <p className="text-gray-600">From Station: {fromst}</p>
+                <p className="text-gray-600">To Station: {tost}</p>
+                <p className="text-gray-600">Date of Journey: {doj}</p>
+                <p className="text-gray-600">Train: {train.train_number}</p>
+                <p className="text-gray-600">Class Type: {classtype}</p>
+              </div>
 
-  <div className="mb-8">
-    <h3 className="text-lg font-semibold text-gray-800 mb-4">Passengers:</h3>
-    {passengers.map((passenger, index) => (
-      <div key={index} className="mb-2 bg-gray-100 p-4 rounded-md">
-        <p>
-          Passenger {index + 1}: {passenger.name} ({passenger.age} years old)
-        </p>
-      </div>
-    ))}
-  </div>
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Passengers:
+                </h3>
+                {passengers.map((passenger, index) => (
+                  <div key={index} className="mb-2 bg-gray-100 p-4 rounded-md">
+                    <p>
+                      Passenger {index + 1}: {passenger.name} ({passenger.age}{" "}
+                      years old)
+                    </p>
+                  </div>
+                ))}
+              </div>
 
-  <button
-    className="bg-green-500 text-white rounded-md px-6 py-3 hover:bg-green-600 transition-colors focus:outline-none"
-    onClick={() => handlepayment()}
-  >
-    Pay Now ₹{amount}
-  </button>
-</div>
+              <button
+                className="bg-green-500 text-white rounded-md px-6 py-3 hover:bg-green-600 transition-colors focus:outline-none"
+                onClick={() => handlepayment()}
+                disabled={paying}
+              >
+                {paying ? "Paying" : "Pay Now"}₹{amount}
+              </button>
+            </div>
           </>
         )}
       </div>
